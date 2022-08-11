@@ -129,16 +129,18 @@ class WrappedModel(nn.Module):
     @classmethod
     def from_pretrained(
         cls,
-        repo_id="mechanicalsea/efficient-tdnn",
-        supernet_filename="depth/depth.torchparams",
-        subnet_filename="depth/depth.ecapa-tdnn.3.512.512.512.512.5.3.3.3.1536.bn.tar",
+        supernet_path,
+        subnet_path,  
+        #repo_id="mechanicalsea/efficient-tdnn",
+        #supernet_filename="depth/depth.torchparams",
+        #subnet_filename="depth/depth.ecapa-tdnn.3.512.512.512.512.5.3.3.3.1536.bn.tar",
         feat_type="logmelfbank",
         feat_dim=80,
         model_type="tdnn8m2g",
         embed_dim=192,
     ):
-        from huggingface_hub import hf_hub_download
-        supernet_path = hf_hub_download(repo_id=repo_id, filename=supernet_filename)
+        #from huggingface_hub import hf_hub_download
+        #supernet_path = hf_hub_download(repo_id=repo_id, filename=supernet_filename)
         sup_state_dict = torch.load(supernet_path, map_location='cpu')['state_dict']
         if feat_type == "logmelfbank":
             transform = LogMelFbanks(n_mels=feat_dim)
@@ -152,8 +154,9 @@ class WrappedModel(nn.Module):
         model = cls(model)
         model.load_state_dict(sup_state_dict, strict=False)
         if subnet_filename not in ["", None, '']:
-            subnet_bn_path = hf_hub_download(repo_id=repo_id, filename=subnet_filename)
-            sub_state_dict = torch.load(subnet_bn_path, map_location='cpu')
+            #subnet_bn_path = hf_hub_download(repo_id=repo_id, filename=subnet_filename)
+            #sub_state_dict = torch.load(subnet_bn_path, map_location='cpu')
+            sub_state_dict = torch.load(subnet_path, map_location='cpu')
             subnet_config = sub_state_dict['subnet']
             subnet = model.module.__S__.clone(subnet_config)
             subnet.load_state_dict(sub_state_dict['bn'], strict=False)
