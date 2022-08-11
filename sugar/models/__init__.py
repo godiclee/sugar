@@ -153,10 +153,10 @@ class WrappedModel(nn.Module):
         model = SpeakerModel(modelarch, transform=transform)
         model = cls(model)
         model.load_state_dict(sup_state_dict, strict=False)
-        if subnet_filename not in ["", None, '']:
+        if subnet_path not in ["", None, '']:
             #subnet_bn_path = hf_hub_download(repo_id=repo_id, filename=subnet_filename)
-            #sub_state_dict = torch.load(subnet_bn_path, map_location='cpu')
-            sub_state_dict = torch.load(subnet_path, map_location='cpu')
+            subnet_bn_path = subnet_path
+            sub_state_dict = torch.load(subnet_bn_path, map_location='cpu')
             subnet_config = sub_state_dict['subnet']
             subnet = model.module.__S__.clone(subnet_config)
             subnet.load_state_dict(sub_state_dict['bn'], strict=False)
