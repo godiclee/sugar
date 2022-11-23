@@ -14,17 +14,20 @@ class PreEmphasis(torch.nn.Module):
         # make kernel
         # In pytorch, the convolution operation uses cross-correlation. So, filter is flipped.
         # buffer can be .cuda() instead of nn.Parameter
+        '''
         self.register_buffer(
             'weight', torch.FloatTensor([-self.coef, 1.]).unsqueeze(0).unsqueeze(0)
         )
         self.register_buffer('bias', None)
-
+        '''
     def forward(self, x: torch.tensor) -> torch.tensor:
         assert len(x.size()) == 2, 'The dimensions of x tensor must be 2!'
         # reflect padding to match lengths of in/out
         x = x.unsqueeze(1)
         x = F.pad(x, (1, 0), 'reflect')
-        return F.conv1d(x, self.weight).squeeze(1)
+        x =  x[0][0][1:] * 1.0 + x[0][0][0:-1] * -0.97
+        return x.unsqueeze(0)
+        #return F.conv1d(x, self.weight).squeeze(1)
 
 
 class LogMelFbanks(torch.nn.Module):
