@@ -138,9 +138,11 @@ class WrappedModel(nn.Module):
         feat_dim=80,
         model_type="tdnn8m2g",
         embed_dim=192,
+        repo_id=None,
     ):
-        #from huggingface_hub import hf_hub_download
-        #supernet_path = hf_hub_download(repo_id=repo_id, filename=supernet_filename)
+        if repo_id:
+            from huggingface_hub import hf_hub_download
+            supernet_path = hf_hub_download(repo_id=repo_id, filename=supernet_path)
         sup_state_dict = torch.load(supernet_path, map_location='cpu')['state_dict']
         if feat_type == "logmelfbank":
             transform = LogMelFbanks(n_mels=feat_dim)
@@ -154,8 +156,10 @@ class WrappedModel(nn.Module):
         model = cls(model)
         model.load_state_dict(sup_state_dict, strict=False)
         if subnet_path not in ["", None, '']:
-            #subnet_bn_path = hf_hub_download(repo_id=repo_id, filename=subnet_filename)
-            subnet_bn_path = subnet_path
+            if repo_id:
+                subnet_bn_path = hf_hub_download(repo_id=repo_id, filename=subnet_path)
+            else:
+                subnet_bn_path = subnet_path
             sub_state_dict = torch.load(subnet_bn_path, map_location='cpu')
             subnet_config = sub_state_dict['subnet']
             subnet = model.module.__S__.clone(subnet_config)
@@ -163,6 +167,7 @@ class WrappedModel(nn.Module):
             subnet = cls(SpeakerModel(subnet, transform=transform))
         else:
             subnet = subnet_bn_path = sub_state_dict = None
+            subnet = model
         info = {'supernet_file': supernet_path, 'supernet': sup_state_dict, 'supernet_model': model,
                 'subnet_file': subnet_bn_path, 'subnet': sub_state_dict}
         return subnet, info
